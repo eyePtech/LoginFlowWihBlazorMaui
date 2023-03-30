@@ -1,0 +1,164 @@
+﻿@page "/registration"
+@inject IAppService AppService;
+<h3>Registration</h3>
+
+
+<EditForm Model="registrationModel" OnValidSubmit="Submit">
+    <DataAnnotationsValidator />
+    <div class="form-group">
+        <label>First Name</label>
+        <input type="email" @bind-value="registrationModel.FirstName" class="form-control" placeholder="Enter First Name" />
+        <ValidationMessage For="(()=> registrationModel.FirstName)" />
+    </div>
+    <div class="form-group">
+        <label>Last Name</label>
+        <input type="email" @bind-value="registrationModel.LastName" class="form-control" placeholder="Enter Last Name" />
+        <ValidationMessage For="(()=> registrationModel.LastName)" />
+    </div>
+
+    <div class="mt-2 form-group">
+        <label>Gender</label>
+        <div class="d-flex flex-row">
+            <div class="d-flex gap-2">
+                <div class="form-check">
+                    <input @onchange="@(()=> registrationModel.Gender = "male")" class="form-check-input" type="radio" name="flexRadioDefault">
+                    <label class="form-check-label" for="flexRadioDefault1">
+                        Male
+                    </label>
+                </div>
+                <div class="form-check">
+                    <input @onchange="@(()=> registrationModel.Gender = "female")" class="form-check-input" type="radio" name="flexRadioDefault">
+                    <label class="form-check-label" for="flexRadioDefault2">
+                        Female
+                    </label>
+                </div>
+            </div>
+        </div>
+        <ValidationMessage For="(()=> registrationModel.Gender)" />
+    </div>
+
+    <div class="form-group">
+        <label>Email address</label>
+        <input type="email" @bind-value="registrationModel.Email" class="form-control" placeholder="Enter email" />
+        <ValidationMessage For="(()=> registrationModel.Email)" />
+    </div>
+    <div class="mt-2 form-group">
+        <label>Password</label>
+        <input type="password" @bind-value="registrationModel.Password" class="form-control" placeholder="Password">
+        <ValidationMessage For="(()=> registrationModel.Password)" />
+    </div>
+    <div class="col-sm-10 mt-2 form-group" >
+        <InputSelect id="country" @bind-Value="CountryId" class="form-control" @onchange="OnCountryChange" >
+            @foreach (var country in Countries)
+            {
+                <option value="@country.id">@country.description</option>
+            }
+        </InputSelect>
+    </div>
+
+    <div class="col-sm-10 mt-2 form-group">
+        <InputSelect id="state" @bind-Value="StateId" class="form-control"  >
+            @foreach (var state in states)
+            {
+                <option value="@state.id">@state.description</option>
+            }
+        </InputSelect>  
+    </div>
+
+    <div class="mt-2 text-end">
+        <NavLink class="nav-link" href="/">
+            <span>Already have account?</span>
+        </NavLink>
+    </div>
+
+    <div class="text-center mt-2">
+        <button class="btn btn-primary" type="submit">
+            <span class="@_spinnerClass" role="status" aria-hidden="true"></span>
+            Register
+        </button>
+    </div>
+</EditForm>
+
+
+@code {
+    RegistrationModel registrationModel = new();
+
+    private string _spinnerClass = "";
+
+    public int CountryId { get; set; }
+    public int StateId { get; set; }
+
+    List<StateModel> states = new List<StateModel>();
+    List<CountryModel> Countries = new List<CountryModel>();
+    //public List<CountryModel> Countries { get; set; } = new List<CountryModel>();
+
+    private async void Submit()
+    {
+        _spinnerClass = "spinner-border spinner-border-sm";
+
+        var response = await AppService.AddUser(registrationModel);
+        //Console.WriteLine(response);
+        if (response.isSuccess)
+        {
+            await App.Current.MainPage.DisplayAlert("Success", "User Register", "ok");
+        }
+        else
+        {
+            await App.Current.MainPage.DisplayAlert("Oops", response.ErrorMessage, "ok");
+        }
+
+        _spinnerClass = "";
+        this.StateHasChanged();
+    }
+
+
+    protected async override Task OnInitializedAsync()
+    {
+
+        Countries = (await AppService.GetCountry()).ToList();
+        //states = (await AppService.GetStates(2)).ToList();
+
+    }
+    private  void OnCountryChange(ChangeEventArgs e)
+    {
+        states.Clear();
+        CountryId = Convert.ToInt32(e.Value.ToString());
+        populatelist(CountryId);
+        //this.StateHasChanged();
+    }
+    private async void populatelist(int id) {
+        states = (await AppService.GetStates(CountryId)).ToList();
+
+    }
+
+
+
+
+
+
+
+    //private async void getStates(int id)
+    //{
+
+
+
+    //    //if (!CountryId.Equals(0))
+    //    //{
+    //    // Make an API call to retrieve the list of cities for the selected country
+    //    states = (await AppService.GetStates(CountryId)).ToList();
+
+    //    // Update the list of cities
+
+
+    //    //}
+    //    //else
+    //    //{
+    //    //    states = new List<StateModel>();
+    //    //}
+
+    //}
+
+
+
+    }
+
